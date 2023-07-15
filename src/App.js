@@ -1,23 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import ItemList from "./components/ItemList";
+import ListNota from "./components/ListNota";
 
 function App() {
+  const [data, setData] = useState([]);
+  const [reload, setReload] = useState(false);
+
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="columns">
+      <div className="column is-7 has-text-centered">
+        <ItemList setData={setData} reload={ reload} setReload={setReload} />
+      </div>
+      <div className="column is-5 font-Overpass">
+        <ListNota
+          data={data}
+          setData={setData}
+          setReload={setReload}
+        />
+      </div>
     </div>
   );
 }
