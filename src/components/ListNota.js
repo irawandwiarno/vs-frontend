@@ -50,7 +50,7 @@ const ListNota = ({ data, setData, setReload }) => {
       }).then(async (result) => {
         if (result.isConfirmed) {
           const newData = [...data];
-          await newData.map(async (item, index) => {
+          for (const item of newData) {
             const response = await axios.get(
               `http://localhost:5000/items/${item.id}`
             );
@@ -60,7 +60,7 @@ const ListNota = ({ data, setData, setReload }) => {
               { stok: itemStok }
             );
             console.log(stokEditRes);
-          });
+          }
           setData([]);
           setReload(true);
 

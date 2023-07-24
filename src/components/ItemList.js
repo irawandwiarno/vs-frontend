@@ -4,6 +4,7 @@ import ReactPaginate from "react-paginate";
 import Modal from "react-modal";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AiOutlineEdit } from "react-icons/ai";
 import Swal from "sweetalert2";
 
 const ItemList = ({ setData, reload, setReload }) => {
@@ -27,7 +28,8 @@ const ItemList = ({ setData, reload, setReload }) => {
   const [isModalStokOpen, setIsModalStokOpen] = useState(false);
 
   //Edit
-  const [stok, setStok] = useState();
+  const [tempVal, setTempVal] = useState();
+  const [typeFuc, setTypeFuc] = useState();
 
   useEffect(() => {
     getItems().then((response) => {
@@ -58,7 +60,7 @@ const ItemList = ({ setData, reload, setReload }) => {
 
   const addToCart = async () => {
     setIsModalQtyOpen(false);
-    const updatedStokValue = stok - quantity;
+    const updatedStokValue = tempVal - quantity;
 
     try {
       const updateRes = await axios.patch(
@@ -92,7 +94,7 @@ const ItemList = ({ setData, reload, setReload }) => {
     setNama("");
     setQuantity(1);
     setPrice(0);
-    setStok();
+    setTempVal();
     setUnit();
   };
 
@@ -105,7 +107,7 @@ const ItemList = ({ setData, reload, setReload }) => {
       setIdItem(response.data.id);
       setNama(response.data.name);
       setPrice(response.data.price);
-      setStok(response.data.stok);
+      setTempVal(response.data.stok);
 
       setIsModalQtyOpen(true);
     } else {
@@ -127,19 +129,28 @@ const ItemList = ({ setData, reload, setReload }) => {
     setNama("");
     setQuantity(1);
     setPrice(0);
+    setTypeFuc();
     setIsModalQtyOpen(false);
   };
 
   //Edit fungsion
   const SaveEdit = async () => {
-    const updatedStokValue = stok;
     try {
-      const stokEditRes = await axios.patch(
-        `http://localhost:5000/items/${idItem}`,
-        { stok: updatedStokValue }
-      );
+      if (typeFuc == "stok") {
+        // const updatedValue = stok;
+        const stokEditRes = await axios.patch(
+          `http://localhost:5000/items/${idItem}`,
+          { stok: tempVal }
+        );
+        console.log(stokEditRes);
+      } else if (typeFuc == "price") {
+        const stokEditRes = await axios.patch(
+          `http://localhost:5000/items/${idItem}`,
+          { price: tempVal }
+        );
+        console.log(stokEditRes);
+      }
 
-      console.log(stokEditRes);
       closeModalStok();
       setReload(true);
     } catch (error) {
@@ -157,15 +168,17 @@ const ItemList = ({ setData, reload, setReload }) => {
     }
   };
 
-  const openModalStok = async (id, stok) => {
+  const openModalStok = async (id, tempVal, typeFuc) => {
     setIdItem(id);
-    setStok(stok);
+    setTempVal(tempVal);
+    setTypeFuc(typeFuc);
     setIsModalStokOpen(true);
   };
 
   const closeModalStok = () => {
-    setStok(0);
+    setTempVal(0);
     setIdItem();
+    setTypeFuc();
     setIsModalStokOpen(false);
   };
 
@@ -199,7 +212,6 @@ const ItemList = ({ setData, reload, setReload }) => {
                 <th>MODEL</th>
                 <th>HARGA</th>
                 <th>STOK</th>
-                <th>EDIT</th>
                 <th>ADD</th>
               </tr>
             </thead>
@@ -209,14 +221,28 @@ const ItemList = ({ setData, reload, setReload }) => {
                   <td>{item.noPart}</td>
                   <td>{item.name}</td>
                   <td>{item.model}</td>
-                  <td>{item.price}</td>
-                  <td>{item.stok}</td>
                   <td>
+                    {item.price}
                     <button
-                      className="button is-warning"
-                      onClick={() => openModalStok(item.id, item.stok)}
+                      className="ml-3 button is-warning"
+                      onClick={() =>
+                        openModalStok(item.id, item.price, "price")
+                      }
                     >
-                      <span>Edit stock</span>
+                      <span>
+                        <AiOutlineEdit />
+                      </span>
+                    </button>
+                  </td>
+                  <td className="px-3 ">
+                    {item.stok}
+                    <button
+                      className="ml-3 button is-warning"
+                      onClick={() => openModalStok(item.id, item.stok, "stok")}
+                    >
+                      <span>
+                        <AiOutlineEdit />
+                      </span>
                     </button>
                   </td>
                   <td>
@@ -312,14 +338,14 @@ const ItemList = ({ setData, reload, setReload }) => {
       >
         <div className="modal-background"></div>
         <div className="modal-content has-text-centered">
-          <h1 className="title has-text-light">Masukkan Stok barang</h1>
+          <h1 className="title has-text-light">Masukkan {typeFuc} barang</h1>
           <div className="field">
             <div className="control">
               <input
                 className="input"
                 type="number"
-                value={stok}
-                onChange={(e) => setStok(e.target.value)}
+                value={tempVal}
+                onChange={(e) => setTempVal(e.target.value)}
                 onKeyPress={(e) => {
                   if (e.key === "Enter") {
                     SaveEdit();
