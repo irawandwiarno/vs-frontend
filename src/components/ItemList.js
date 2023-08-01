@@ -5,7 +5,7 @@ import Modal from "react-modal";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AiOutlineEdit } from "react-icons/ai";
-import Swal from "sweetalert2";
+import { BiPlus } from "react-icons/bi";
 
 const ItemList = ({ setData, reload, setReload }) => {
   const [items, setItems] = useState([]);
@@ -61,41 +61,53 @@ const ItemList = ({ setData, reload, setReload }) => {
   const addToCart = async () => {
     setIsModalQtyOpen(false);
     const updatedStokValue = tempVal - quantity;
-
-    try {
-      const updateRes = await axios.patch(
-        `http://localhost:5000/items/${idItem}`,
-        { stok: updatedStokValue }
-      );
-    } catch (error) {
-      if (error.response) {
-        console.log("Error response:");
-        console.log(error.response.data);
-        console.log(error.response.status);
-        console.log(error.response.headers);
-      } else {
-        console.log("Error:", error.message);
+    if (updatedStokValue >= 0 && quantity > 0) {
+      try {
+        const updateRes = await axios.patch(
+          `http://localhost:5000/items/${idItem}`,
+          { stok: updatedStokValue }
+        );
+      } catch (error) {
+        if (error.response) {
+          console.log("Error response:");
+          console.log(error.response.data);
+          console.log(error.response.status);
+          console.log(error.response.headers);
+        } else {
+          console.log("Error:", error.message);
+        }
       }
+
+      getItems();
+
+      const newItem = {
+        id: idItem,
+        nama: nama,
+        quantity: quantity,
+        price: price,
+      };
+
+      setData((prevData) => [...prevData, newItem]);
+
+      // Reset nilai input setelah ditambahkan ke cart
+      setIdItem("");
+      setNama("");
+      setQuantity(1);
+      setPrice(0);
+      setTempVal();
+      setUnit();
+    } else {
+      toast.error("Stok Barang Anda Kurang", {
+        position: "top-center",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
     }
-
-    getItems();
-
-    const newItem = {
-      id: idItem,
-      nama: nama,
-      quantity: quantity,
-      price: price,
-    };
-
-    setData((prevData) => [...prevData, newItem]);
-
-    // Reset nilai input setelah ditambahkan ke cart
-    setIdItem("");
-    setNama("");
-    setQuantity(1);
-    setPrice(0);
-    setTempVal();
-    setUnit();
   };
 
   const openModalQty = async (id, stok) => {
@@ -219,12 +231,16 @@ const ItemList = ({ setData, reload, setReload }) => {
               {items.map((item) => (
                 <tr key={item.id}>
                   <td>{item.noPart}</td>
-                  <td>{item.name}</td>
-                  <td>{item.model}</td>
                   <td>
+                    {item.name.length > 25
+                      ? item.name.slice(0, 23) + "..."
+                      : item.name}
+                  </td>
+                  <td>{item.model}</td>
+                  <td className="">
                     {item.price}
                     <button
-                      className="ml-3 button is-warning"
+                      className="ml-3 button is-text"
                       onClick={() =>
                         openModalStok(item.id, item.price, "price")
                       }
@@ -234,10 +250,10 @@ const ItemList = ({ setData, reload, setReload }) => {
                       </span>
                     </button>
                   </td>
-                  <td className="px-3 ">
+                  <td className="has-text-centered">
                     {item.stok}
                     <button
-                      className="ml-3 button is-warning"
+                      className="ml-3 button is-text"
                       onClick={() => openModalStok(item.id, item.stok, "stok")}
                     >
                       <span>
@@ -250,7 +266,9 @@ const ItemList = ({ setData, reload, setReload }) => {
                       className="button is-primary"
                       onClick={() => openModalQty(item.id, item.stok)}
                     >
-                      <span>Add+</span>
+                      <span>
+                        <BiPlus />
+                      </span>
                     </button>
                   </td>
                 </tr>

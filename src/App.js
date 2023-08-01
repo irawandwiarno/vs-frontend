@@ -1,26 +1,19 @@
-import React, { useState } from "react";
-import ItemList from "./components/ItemList";
-import ListNota from "./components/ListNota";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/home";
+import Nota from "./pages/nota";
+import Navbar from "./components/navbar";
 
-function App() {
-  const [data, setData] = useState([]);
-  const [reload, setReload] = useState(false);
-
-
+const App = () => {
   return (
-    <div className="columns">
-      <div className="column is-7 has-text-centered">
-        <ItemList setData={setData} reload={ reload} setReload={setReload} />
-      </div>
-      <div className="column is-5 font-Overpass">
-        <ListNota
-          data={data}
-          setData={setData}
-          setReload={setReload}
-        />
-      </div>
-    </div>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/nota" element={<Nota />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;

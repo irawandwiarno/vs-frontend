@@ -1,12 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MdClose } from "react-icons/md";
-import ReactToPrint from "react-to-print";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+// Printer
+import ReactToPrint from "react-to-print";
+
+// Alert
+import { ToastContainer, toast } from "react-toastify";
 import Swal from "sweetalert2";
 
-const ListNota = ({ data, setData, setReload }) => {
+// icons
+import { BiMinus } from "react-icons/bi";
+
+const ListNota = ({ data, setData, setReload, setting, dataId, setDataId}) => {
   const [total, setTotal] = useState(0);
   const componentsRef = useRef();
 
@@ -99,6 +105,7 @@ const ListNota = ({ data, setData, setReload }) => {
         const notaSave = {
           item: data,
           catatan: "",
+          total: total,
         };
         console.log("notaSave : " + notaSave.item);
         const response = await axios.post(
@@ -136,6 +143,32 @@ const ListNota = ({ data, setData, setReload }) => {
     }
   };
 
+  const deleteNota = (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await axios.delete(
+            `http://localhost:5000/nota/${id}`
+          );
+          setData([]);
+          setDataId(0);
+          setReload(true);
+          console.log(response.data);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    });
+  };
+
   return (
     <div>
       <div
@@ -163,14 +196,19 @@ const ListNota = ({ data, setData, setReload }) => {
                   const formattedItemTotal = itemTotal.toLocaleString();
                   return (
                     <tr key={index}>
-                      <td>
-                        <button
-                          className="button is-danger is-small"
-                          onClick={() => deleteItemOnArr(index)}
-                        >
-                          <MdClose />
-                        </button>
-                      </td>
+                      {setting !== "clear" ? (
+                        <td>
+                          <button
+                            className="button is-danger is-small"
+                            onClick={() => deleteItemOnArr(index)}
+                          >
+                            <BiMinus />
+                          </button>
+                        </td>
+                      ) : (
+                        <td></td>
+                      )}
+
                       <td>{item.nama}</td>
                       <td>@{item.quantity}</td>
                       <td>{formattedPrice}</td>
@@ -204,23 +242,35 @@ const ListNota = ({ data, setData, setReload }) => {
             content={() => componentsRef.current}
             documentTitle="Nota belanja"
             pageStyle="print"
-            onBeforePrint={saveData} // Menggunakan properti onBeforePrint untuk memanggil fungsi saveData sebelum mencetak
+            // onBeforePrint={saveData} // Menggunakan properti onBeforePrint untuk memanggil fungsi saveData sebelum mencetak
           />
-
-          <button
-            className="button is-success font-Overpass"
-            onClick={() => saveData()}
-          >
-            Save
-          </button>
+          {setting !== "clear" ? (
+            <button
+              className="button is-success font-Overpass"
+              onClick={() => saveData()}
+            >
+              Save
+            </button>
+          ) : (
+            <div></div>
+          )}
         </div>
 
-        <button
-          className="button is-danger font-Overpass"
-          onClick={() => deleteAllItem()}
-        >
-          Clear All
-        </button>
+        {setting !== "clear" ? (
+          <button
+            className="button is-danger font-Overpass"
+            onClick={() => deleteAllItem()}
+          >
+            Clear All
+          </button>
+        ) : (
+          <button
+            className="button is-danger font-Overpass"
+            onClick={() => deleteNota(dataId)}
+          >
+            Delete
+          </button>
+        )}
       </div>
       <ToastContainer
         position="top-center"
